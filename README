@@ -1,2 +1,3 @@
 Arduino implementation of rfc6238 One-Time password
 
+SHA hashing implementation from https://github.com/Cathedrow/Cryptosuite
