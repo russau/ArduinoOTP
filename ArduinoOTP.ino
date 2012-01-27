@@ -5,6 +5,22 @@
 
 #include "sha1.h" 
 #include <stdarg.h>
+#include "Time.h"  
+// include the library code:
+#include <LiquidCrystal.h>
+
+// initialize the library with the numbers of the interface pins
+LiquidCrystal lcd(7, 8, 9, 10, 11, 12);
+
+
+uint8_t hmacKey1[]={
+ 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x21, 0xde, 0xad, 0xbe, 0xef 
+};
+
+uint8_t time[]={
+   0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00 
+};
+
 
 
 void printHash(uint8_t* hash, int length) {
@@ -17,28 +33,41 @@ void printHash(uint8_t* hash, int length) {
 }
 
 
+void lcdHash(uint8_t* hash, int length) {
+  int i;
+  
+  char str[length*2 + 1];
+  
+  for (i=0; i<length; i++) {
+    str[i*2] = "0123456789abcdef"[hash[i]>>4];
+    str[i*2+1] = "0123456789abcdef"[hash[i]&0xf];
+  }
+  str[i*2] = '\0';
+  
+  lcd.print(str);
+}
+
+
+  
+
 void setup()  { 
-   
+  
+  Serial.begin(9600);
+
+  setSyncProvider( requestSync);  //set function to call when sync required
+  setTime(1327667919);
+}
+
+void loop() {
+  
   uint8_t* hash;
   uint8_t otp[4];
   uint32_t a;
-  
-  Serial.begin(9600);
-  
-  uint8_t hmacKey1[]={
-   0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x21, 0xde, 0xad, 0xbe, 0xef 
-};
-
-uint8_t time[]={
-   0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00 
-};
-
-//5eed967e4fc91e989612e84f44e5b7984ecf059e
-
+ 
   Serial.print("Secret : ");
   printHash(hmacKey1, 10);
   
-  long epoch = 1326025119 / 30;
+  long epoch = now() / 30;
   time[4] =  (byte )((epoch >> 24) & 0xff);
   time[5] = (byte )((epoch >> 16) & 0xff);
   time[6] = (byte )((epoch >> 8) & 0xff);
@@ -46,6 +75,7 @@ uint8_t time[]={
   
   Serial.print("Time : ");
   printHash(time, 8);
+  //lcdHash(time, 8);
 
   Sha1.initHmac(hmacKey1, 10);
   Sha1.writebytes(time, 8);
@@ -69,16 +99,22 @@ uint8_t time[]={
   
   Serial.print("Code : ");   //needs to be left padded
   Serial.println(val);
-  
+  lcd.setCursor(0, 0);
+  lcd.print(val);
+  lcd.setCursor(0, 1);
+  lcdHash(time, 8);
   
    
-  
+  delay(1000);
 } 
 
-void loop()  { 
- 
-  // wait for 30 milliseconds to see the dimming effect    
-  delay(30);                            
+
+
+time_t requestSync()
+{
+  //Serial.print(TIME_REQUEST,BYTE);  
+  return 0; // the time will be sent later in response to serial mesg
 }
+
 
 
