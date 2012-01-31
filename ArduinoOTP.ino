@@ -3,14 +3,18 @@
  
  */
 
-#include "sha1.h" 
 #include <stdarg.h>
-#include "Time.h"  
-// include the library code:
 #include <LiquidCrystal.h>
+#include "sha1.h" 
 
-// initialize the library with the numbers of the interface pins
-LiquidCrystal lcd(7, 8, 9, 10, 11, 12);
+#include <SPI.h>
+#include <Wire.h>
+#include "RTClib.h"
+#include "RTC_DS3234.h"
+
+
+RTC_DS3234 RTC(8);
+LiquidCrystal lcd(7, 6, 2, 3, 4, 5);
 
 
 uint8_t hmacKey1[]={
@@ -46,16 +50,13 @@ void lcdHash(uint8_t* hash, int length) {
   
   lcd.print(str);
 }
-
-
   
-
 void setup()  { 
   
   Serial.begin(9600);
-
-  setSyncProvider( requestSync);  //set function to call when sync required
-  setTime(1327667919);
+  SPI.begin();
+  RTC.begin();  
+  lcd.begin(16, 2);
 }
 
 void loop() {
@@ -67,7 +68,15 @@ void loop() {
   Serial.print("Secret : ");
   printHash(hmacKey1, 10);
   
-  long epoch = now() / 30;
+   DateTime now = RTC.now();
+
+    Serial.println(now.toString(buf,len));
+    
+    Serial.print(" since midnight 1/1/1970 = ");
+    Serial.print(now.unixtime());
+    
+  //uint32_t x = RTC.now().unixtime() / 30;
+  long epoch = 123456;
   time[4] =  (byte )((epoch >> 24) & 0xff);
   time[5] = (byte )((epoch >> 16) & 0xff);
   time[6] = (byte )((epoch >> 8) & 0xff);
@@ -109,12 +118,6 @@ void loop() {
 } 
 
 
-
-time_t requestSync()
-{
-  //Serial.print(TIME_REQUEST,BYTE);  
-  return 0; // the time will be sent later in response to serial mesg
-}
 
 
 
