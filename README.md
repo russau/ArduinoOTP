@@ -4,3 +4,5 @@ See a demo here: http://youtu.be/uYRjAbNJsXw https://twitter.com/russaus/status/
 
 SHA hashing implementation from https://github.com/Cathedrow/Cryptosuite
 Real Time Clock library from https://github.com/maniacbug/RTClib
+
+![pic](https://pbs.twimg.com/media/AkPqurpCQAAvhFj.jpg)
